@@ -11,28 +11,34 @@ declare class Disposition {
     eligible(id: string): Eligible;
 }
 declare class Module {
-    protected readonly modulePath: Eligible["path"];
     protected readonly ctx: Generator;
     protected readonly disposition: Disposition;
-    readonly parent: Module | undefined;
-    value: Module | undefined;
+    value: Record<string | number | symbol, any>;
+    /**
+     * 子模块
+     */
     children: Set<Module>;
-    constructor(modulePath: Eligible["path"], ctx: Generator, disposition: Disposition, parent?: Module | undefined);
+    /**
+     * 当前路径
+     */
+    path: string;
+    /**
+     * 是否模块：任何的文件都属于模块
+     */
+    istExist: boolean;
+    /**
+     * 目录类型
+     */
+    isDirectory: boolean;
+    constructor(ctx: Generator, disposition: Disposition);
     prepare(modulePath: string): Promise<void>;
-    correlation(modulePath: string): void;
+    correlation(modulePath: string): Promise<void>;
 }
 type TemplateID = string;
-interface TemplateOptions {
-}
-declare class Template {
-    constructor(ctx: Generator, disposition: Disposition);
-    graph(id: TemplateID, options: TemplateOptions): void;
-    getGraph(): Module | undefined;
-}
 export class Generator {
     protected readonly _disposition: Disposition;
     constructor(generateOptions?: {});
-    scan(templateID: TemplateID, options?: {}): Template;
+    scan(templateID: TemplateID, options?: {}): Promise<Module | undefined>;
 }
 export default Generator;
 

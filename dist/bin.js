@@ -61,7 +61,7 @@ function $9576dbdb1ee77e84$export$38412a8139e981aa(path) {
 function $9576dbdb1ee77e84$export$9e9cb0ec1acab46c(dirPath) {
     return new Promise((resolve, reject)=>{
         return (0, ($parcel$interopDefault($j5qfc$fs))).readdir(dirPath, (err, files)=>{
-            if (err) return reject(err);
+            if (err) return reject([]);
             resolve(files);
         });
     });
@@ -70,41 +70,53 @@ function $9576dbdb1ee77e84$export$9e9cb0ec1acab46c(dirPath) {
 
 
 class $374cb24dec1c6695$export$2e2bcd8739ae039 {
-    modulePath;
     ctx;
     disposition;
-    parent;
     value;
-    children;
-    constructor(modulePath, ctx, disposition, parent){
-        this.modulePath = modulePath;
+    /**
+   * 子模块
+   */ children;
+    /**
+   * 当前路径
+   */ path;
+    /**
+   * 是否模块：任何的文件都属于模块
+   */ istExist;
+    /**
+   * 目录类型
+   */ isDirectory;
+    constructor(ctx, disposition){
         this.ctx = ctx;
         this.disposition = disposition;
-        this.parent = parent;
+        this.value = {};
         this.children = new Set();
-        this.prepare(modulePath);
+        this.path = "";
+        this.istExist = false;
+        this.isDirectory = false;
     }
     async prepare(modulePath) {
+        this.path = modulePath;
         /**
      * 在调用Module的之前已经检查过路径存在性
      * 只需要检查是否为目录即可
      */ const result = await (0, $9576dbdb1ee77e84$export$38412a8139e981aa)(modulePath);
+        this.isDirectory = result.isDir;
+        this.istExist = result.isModule;
         if (!result.isModule) return;
         if (result.isDir) {
-            this.correlation(modulePath);
+            await this.correlation(modulePath);
             return;
         }
-        this.value = this.parent;
+        this.value = {};
     }
-    correlation(modulePath) {
-        // @ts-ignore
-        const _this = this || this.parent;
-        (0, $9576dbdb1ee77e84$export$9e9cb0ec1acab46c)(modulePath).then((files)=>{
-            files.forEach((moduleFileName)=>{
-                const m = new $374cb24dec1c6695$export$2e2bcd8739ae039((0, ($parcel$interopDefault($j5qfc$path))).join(modulePath, moduleFileName), this.ctx, this.disposition, _this);
-                if (_this) _this.children.add(m);
-            });
-        });
+    async correlation(modulePath) {
+        const files = await (0, $9576dbdb1ee77e84$export$9e9cb0ec1acab46c)(modulePath);
+        for (const moduleFileName of files){
+            const submodulePath = (0, ($parcel$interopDefault($j5qfc$path))).join(modulePath, moduleFileName);
+            const submodule = new $374cb24dec1c6695$export$2e2bcd8739ae039(this.ctx, this.disposition);
+            await submodule.prepare(submodulePath);
+            this.children.add(submodule);
+        }
     }
 }
 
@@ -117,9 +129,13 @@ class $c2671512efbae894$export$2e2bcd8739ae039 {
         this.ctx = ctx;
         this.disposition = disposition;
     }
-    graph(id, options) {
+    async graph(id, options) {
         const eligible = this.disposition.eligible(id);
-        if (eligible.isEligible) this._module = new (0, $374cb24dec1c6695$export$2e2bcd8739ae039)(`${eligible.path}/${eligible.id}`, this.ctx, this.disposition);
+        if (eligible.isEligible) {
+            const rootModule = new (0, $374cb24dec1c6695$export$2e2bcd8739ae039)(this.ctx, this.disposition);
+            await rootModule.prepare(`${eligible.path}/${eligible.id}`);
+            this._module = rootModule;
+        }
     }
     getGraph() {
         return this._module;
@@ -132,10 +148,10 @@ class $ac89f0d1dbdd363c$export$2e2bcd8739ae039 {
     constructor(generateOptions = {}){
         this._disposition = new (0, $7a6c82c65fe6322c$export$2e2bcd8739ae039)(generateOptions);
     }
-    scan(templateID, options = {}) {
+    async scan(templateID, options = {}) {
         const template = new (0, $c2671512efbae894$export$2e2bcd8739ae039)(this, this._disposition);
-        template.graph(templateID, options);
-        return template;
+        await template.graph(templateID, options);
+        return template.getGraph();
     }
 }
 

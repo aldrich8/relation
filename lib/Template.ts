@@ -14,10 +14,12 @@ export default class Template {
     private readonly disposition: Disposition
   ) {}
 
-  public graph(id: TemplateID, options: TemplateOptions) {
+  public async graph(id: TemplateID, options: TemplateOptions) {
     const eligible = this.disposition.eligible(id);
     if (eligible.isEligible) {
-      this._module = new Module(`${eligible.path}/${eligible.id}`, this.ctx, this.disposition);
+      const rootModule = new Module(this.ctx, this.disposition);
+      await rootModule.prepare(`${eligible.path}/${eligible.id}`);
+      this._module = rootModule;
     }
   }
 

@@ -27,7 +27,7 @@ export function getDirectoryFiles(dirPath: string) {
   return new Promise((resolve, reject) => {
     return fs.readdir(dirPath, (err, files) => {
       if (err) {
-        return reject(err);
+        return reject([]);
       }
       resolve(files);
     });

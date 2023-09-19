@@ -1,5 +1,6 @@
 import Disposition from "./Disposition";
 import Template, { TemplateID } from "./Template";
+import Module from "./Module";
 
 export default class Generator {
     protected readonly _disposition: Disposition;
@@ -8,9 +9,9 @@ export default class Generator {
         this._disposition = new Disposition(generateOptions);
     }
 
-    public scan(templateID: TemplateID, options = {}): Template {
+    public async scan(templateID: TemplateID, options = {}): Promise<Module | undefined> {
         const template = new Template(this, this._disposition);
-        template.graph(templateID, options);
-        return template
+        await template.graph(templateID, options);
+        return template.getGraph();
     }
 }

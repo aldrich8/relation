@@ -1,49 +1,67 @@
 import Generator from "./Generator";
-import Disposition, { Eligible } from "./Disposition";
+import Disposition from "./Disposition";
 import { getDirectoryFiles, isDirectory } from "./utils";
 import path from "path";
 
 export default class Module {
-  public value: Module | undefined;
+  public value: Record<string | number | symbol, any> = {};
+
+  /**
+   * 子模块
+   */
   public children: Set<Module> = new Set<Module>();
 
+  /**
+   * 当前路径
+   */
+  public path: string = '';
+
+  /**
+   * 是否模块：任何的文件都属于模块
+   */
+  public istExist: boolean = false;
+
+  /**
+   * 目录类型
+   */
+  public isDirectory: boolean = false;
+
   constructor(
-    protected readonly modulePath: Eligible["path"],
     protected readonly ctx: Generator,
     protected readonly disposition: Disposition,
-    public readonly parent: Module | undefined = undefined
-  ) {
-    this.prepare(modulePath);
-  }
+  ) {}
 
   async prepare(modulePath: string) {
+    this.path = modulePath;
+
     /**
      * 在调用Module的之前已经检查过路径存在性
      * 只需要检查是否为目录即可
      */
     const result = await isDirectory(modulePath);
+
+    this.isDirectory = result.isDir;
+    this.istExist = result.isModule;
+
     if (!result.isModule) {
       return;
     }
 
     if (result.isDir) {
-      this.correlation(modulePath);
+      await this.correlation(modulePath);
       return;
     }
 
-    this.value = this.parent;
+    this.value = {};
   }
 
-  public correlation(modulePath: string) {
-    // @ts-ignore
-    const _this = this || this.parent;
-    getDirectoryFiles(modulePath).then((files) => {
-      (files as string[]).forEach((moduleFileName) => {
-        const m = new Module(path.join(modulePath, moduleFileName), this.ctx, this.disposition, _this);
-        if(_this) {
-          _this.children.add(m);
-        }
-      });
-    });
+  public async correlation(modulePath: string) {
+    const files = await getDirectoryFiles(modulePath) as string[];
+    for (const moduleFileName of files) {
+        const submodulePath = path.join(modulePath, moduleFileName);
+        const submodule = new Module(this.ctx, this.disposition);
+        await submodule.prepare(submodulePath);
+        this.children.add(submodule);
+    }
   }
 }

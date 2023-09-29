@@ -5,6 +5,7 @@ export interface Eligible {
     isEligible: boolean;
     path: string;
     isPreset: boolean;
+    relativePath: string;
 }
 
 export default class Disposition {
@@ -24,6 +25,7 @@ export default class Disposition {
             id,
             isEligible: true,
             path: path.resolve(__dirname, "..", 'visualizations'),
+            relativePath: path.relative(path.resolve(__dirname, "..", 'visualizations'), path.resolve(__dirname, "..", 'visualizations')),
             isPreset: false,
         };
     }

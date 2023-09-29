@@ -17,9 +17,14 @@ export default class Module {
   public path: string = '';
 
   /**
-   * 是否模块：任何的文件都属于模块
+   * 是否存在：文件夹或者文件是否存在
    */
   public istExist: boolean = false;
+
+  /**
+   * 是否为模块：文件是否存在
+   */
+  public isModule: boolean = false;
 
   /**
    * 目录类型
@@ -41,18 +46,21 @@ export default class Module {
     const result = await isDirectory(modulePath);
 
     this.isDirectory = result.isDir;
+    this.isModule = !result.isDir;
     this.istExist = result.isModule;
 
     if (!result.isModule) {
       return;
     }
 
+    this.value = this.isModule ? path.parse(modulePath) : {};
+
     if (result.isDir) {
       await this.correlation(modulePath);
       return;
     }
 
-    this.value = {};
+    // this.value = {};
   }
 
   public async correlation(modulePath: string) {

@@ -34,6 +34,7 @@ class $7a6c82c65fe6322c$export$2e2bcd8739ae039 {
             id: id,
             isEligible: true,
             path: (0, ($parcel$interopDefault($j5qfc$path))).resolve($7a6c82c65fe6322c$var$$parcel$__dirname, "..", "visualizations"),
+            relativePath: (0, ($parcel$interopDefault($j5qfc$path))).relative((0, ($parcel$interopDefault($j5qfc$path))).resolve($7a6c82c65fe6322c$var$$parcel$__dirname, "..", "visualizations"), (0, ($parcel$interopDefault($j5qfc$path))).resolve($7a6c82c65fe6322c$var$$parcel$__dirname, "..", "visualizations")),
             isPreset: false
         };
     }
@@ -80,8 +81,11 @@ class $374cb24dec1c6695$export$2e2bcd8739ae039 {
    * 当前路径
    */ path;
     /**
-   * 是否模块：任何的文件都属于模块
+   * 是否存在：文件夹或者文件是否存在
    */ istExist;
+    /**
+   * 是否为模块：文件是否存在
+   */ isModule;
     /**
    * 目录类型
    */ isDirectory;
@@ -92,6 +96,7 @@ class $374cb24dec1c6695$export$2e2bcd8739ae039 {
         this.children = new Set();
         this.path = "";
         this.istExist = false;
+        this.isModule = false;
         this.isDirectory = false;
     }
     async prepare(modulePath) {
@@ -101,13 +106,15 @@ class $374cb24dec1c6695$export$2e2bcd8739ae039 {
      * 只需要检查是否为目录即可
      */ const result = await (0, $9576dbdb1ee77e84$export$38412a8139e981aa)(modulePath);
         this.isDirectory = result.isDir;
+        this.isModule = !result.isDir;
         this.istExist = result.isModule;
         if (!result.isModule) return;
+        this.value = this.isModule ? (0, ($parcel$interopDefault($j5qfc$path))).parse(modulePath) : {};
         if (result.isDir) {
             await this.correlation(modulePath);
             return;
         }
-        this.value = {};
+    // this.value = {};
     }
     async correlation(modulePath) {
         const files = await (0, $9576dbdb1ee77e84$export$9e9cb0ec1acab46c)(modulePath);

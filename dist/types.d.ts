@@ -3,6 +3,7 @@ interface Eligible {
     isEligible: boolean;
     path: string;
     isPreset: boolean;
+    relativePath: string;
 }
 declare class Disposition {
     constructor(generateOptions?: {});
@@ -23,9 +24,13 @@ declare class Module {
      */
     path: string;
     /**
-     * 是否模块：任何的文件都属于模块
+     * 是否存在：文件夹或者文件是否存在
      */
     istExist: boolean;
+    /**
+     * 是否为模块：文件是否存在
+     */
+    isModule: boolean;
     /**
      * 目录类型
      */
